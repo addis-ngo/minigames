@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Check, X, Plus, Trash2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Character, ImpostorSettings, GuessWhoSettings } from '../types';
 import { getImpostorSettings, saveImpostorSettings, getGuessWhoSettings, saveGuessWhoSettings } from '../utils/storage';
 import { FloatingBubblesBackground } from './FloatingBubblesBackground';
@@ -24,6 +25,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'POOL' | 'GUESS_WHO' | 'IMPOSTOR'>('POOL');
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Impostor settings state
   const [impostorSettings, setImpostorSettings] = useState<ImpostorSettings>(getImpostorSettings);
@@ -126,115 +128,139 @@ export const MainScreen: React.FC<MainScreenProps> = ({
     onPlay(selectedCategories.length > 0 ? selectedCategories : undefined);
   };
 
+  const handleGameStartWithAnimation = (action: () => void) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      action();
+    }, 520);
+  };
+
   return (
     <div className="min-h-screen bg-white bg-blue-dot-grid flex flex-col items-center justify-center p-6 select-none relative overflow-hidden">
       {/* Floating Colored Bubbles Background on White Canvas */}
-      <FloatingBubblesBackground characters={characters} />
+      <FloatingBubblesBackground characters={characters} isFadingOut={isTransitioning} />
 
       {/* Main console card box over floating bubbles background */}
-      <div
-        className="w-full max-w-md sm:max-w-lg bg-[#a5b4fc]/95 backdrop-blur-xl px-10 sm:px-14 py-9 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50 transition-all duration-300 hover:scale-[1.01]"
-        style={{
-          borderRadius: '55% 45% 62% 38% / 38% 62% 38% 62%',
+      <motion.div
+        initial={{ borderRadius: '6% 6% 6% 6% / 6% 6% 6% 6%' }}
+        animate={{
+          borderRadius: isTransitioning
+            ? '6% 6% 6% 6% / 6% 6% 6% 6%'
+            : '55% 45% 62% 38% / 38% 62% 38% 62%',
         }}
+        transition={{
+          duration: 0.6,
+          ease: [0.25, 1, 0.5, 1],
+        }}
+        className="w-full max-w-md sm:max-w-lg bg-[#a5b4fc]/95 backdrop-blur-xl px-10 sm:px-14 py-9 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50"
       >
-        {/* Heading */}
-        <h1 className="text-5xl sm:text-6xl md:text-7xl font-bangers tracking-wider text-white uppercase -mt-12 sm:-mt-14 mb-4 transform -rotate-2 hover:scale-105 transition-transform duration-300 [-webkit-text-stroke:2.5px_black] whitespace-nowrap z-20 px-2 pointer-events-auto">
-          {MENU_TITLES[titleIndex % (MENU_TITLES.length || 1)] || 'ichigobankai'}
-        </h1>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isTransitioning ? 0 : 1 }}
+          transition={{
+            duration: isTransitioning ? 0.25 : 0.4,
+            delay: isTransitioning ? 0 : 0.1,
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          {/* Heading */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bangers tracking-wider text-white uppercase -mt-12 sm:-mt-14 mb-4 transform -rotate-2 hover:scale-105 transition-transform duration-300 [-webkit-text-stroke:2.5px_black] whitespace-nowrap z-20 px-2 pointer-events-auto">
+            {MENU_TITLES[titleIndex % (MENU_TITLES.length || 1)] || 'ichigobankai'}
+          </h1>
 
-        {/* Main Games and Library / Settings Grid */}
-        <div className="w-full max-w-[330px] sm:max-w-[370px] space-y-3">
-          {/* 1. Guess Who */}
-          <button
-            type="button"
-            onClick={handlePlayGame}
-            className="w-full py-3 px-5 bg-amber-300 hover:bg-amber-200 text-black font-comic font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center transition-all shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer group border-2 border-white"
-            style={{
-              borderRadius: '60% 40% 55% 45% / 45% 55% 45% 55%',
-            }}
-          >
-            <span className="font-comic font-black text-black tracking-wider">Guess Who</span>
-          </button>
+          {/* Main Games and Library / Settings Grid */}
+          <div className="w-full max-w-[330px] sm:max-w-[370px] space-y-3">
+            {/* 1. Guess Who */}
+            <button
+              type="button"
+              onClick={() => handleGameStartWithAnimation(handlePlayGame)}
+              className="w-full py-3 px-5 bg-amber-300 hover:bg-amber-200 text-black font-comic font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center transition-all shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer group border-2 border-white"
+              style={{
+                borderRadius: '60% 40% 55% 45% / 45% 55% 45% 55%',
+              }}
+            >
+              <span className="font-comic font-black text-black tracking-wider">Guess Who</span>
+            </button>
 
-          {/* 2. Impostor Games (Header above Character & Question) */}
-          <div
-            className="w-full flex flex-col gap-1.5 p-3 bg-white/80 backdrop-blur-md border-2 border-white/90 shadow-sm"
-            style={{
-              borderRadius: '45% 55% 60% 40% / 50% 45% 55% 50%',
-            }}
-          >
-            <div className="flex items-center justify-center px-1 mb-0.5">
-              <span className="font-comic font-extrabold text-[11px] tracking-widest text-black uppercase">
-                Impostor
-              </span>
+            {/* 2. Impostor Games (Header above Character & Question) */}
+            <div
+              className="w-full flex flex-col gap-1.5 p-3 bg-white/80 backdrop-blur-md border-2 border-white/90 shadow-sm"
+              style={{
+                borderRadius: '45% 55% 60% 40% / 50% 45% 55% 50%',
+              }}
+            >
+              <div className="flex items-center justify-center px-1 mb-0.5">
+                <span className="font-comic font-extrabold text-[11px] tracking-widest text-black uppercase">
+                  Impostor
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={() => handleGameStartWithAnimation(() => onPlayCharacterImpostor(selectedCategories))}
+                  className="py-2.5 px-2 bg-purple-300/90 hover:bg-purple-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase transition-all border-2 border-white shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                  style={{
+                    borderRadius: '50% 50% 65% 35% / 40% 60% 40% 60%',
+                  }}
+                >
+                  Character
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleGameStartWithAnimation(onPlayQuestionImpostor)}
+                  className="py-2.5 px-2 bg-sky-300/90 hover:bg-sky-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase transition-all border-2 border-white shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                  style={{
+                    borderRadius: '65% 35% 45% 55% / 55% 45% 55% 45%',
+                  }}
+                >
+                  Question
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 w-full">
+
+            {/* 3. Blind Rank */}
+            <button
+              type="button"
+              onClick={() => handleGameStartWithAnimation(() => onPlayBlindRank(selectedCategories))}
+              className="w-full py-3 px-5 bg-emerald-300/90 hover:bg-emerald-300 text-black font-comic font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group"
+              style={{
+                borderRadius: '40% 60% 50% 50% / 60% 40% 60% 40%',
+              }}
+            >
+              <span className="font-comic font-extrabold text-black tracking-wider">Blind Rank</span>
+            </button>
+
+            {/* Bottom Row: 4. Character Library (Left Half) & Settings (Right Half) */}
+            <div className="grid grid-cols-2 gap-2.5 w-full">
               <button
                 type="button"
-                onClick={() => onPlayCharacterImpostor(selectedCategories)}
-                className="py-2.5 px-2 bg-purple-300/90 hover:bg-purple-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase transition-all border-2 border-white shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                onClick={onOpenLibrary}
+                className="py-2.5 px-3 bg-teal-300/90 hover:bg-teal-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group"
                 style={{
-                  borderRadius: '50% 50% 65% 35% / 40% 60% 40% 60%',
+                  borderRadius: '55% 45% 60% 40% / 45% 55% 45% 55%',
                 }}
               >
-                Character
+                <span className="truncate font-comic text-black">Library</span>
               </button>
 
               <button
                 type="button"
-                onClick={onPlayQuestionImpostor}
-                className="py-2.5 px-2 bg-sky-300/90 hover:bg-sky-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase transition-all border-2 border-white shadow-sm active:scale-[0.98] cursor-pointer text-center"
+                onClick={() => setIsSettingsOpen(true)}
+                className="py-2.5 px-3 bg-fuchsia-300/90 hover:bg-fuchsia-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group relative"
                 style={{
-                  borderRadius: '65% 35% 45% 55% / 55% 45% 55% 45%',
+                  borderRadius: '45% 55% 40% 60% / 55% 45% 55% 45%',
                 }}
               >
-                Question
+                <span className="truncate font-comic text-black">Settings</span>
+                {selectedCategories.length > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 ring-2 ring-white animate-pulse rounded-full" />
+                )}
               </button>
             </div>
           </div>
-
-          {/* 3. Blind Rank */}
-          <button
-            type="button"
-            onClick={() => onPlayBlindRank(selectedCategories)}
-            className="w-full py-3 px-5 bg-emerald-300/90 hover:bg-emerald-300 text-black font-comic font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group"
-            style={{
-              borderRadius: '40% 60% 50% 50% / 60% 40% 60% 40%',
-            }}
-          >
-            <span className="font-comic font-extrabold text-black tracking-wider">Blind Rank</span>
-          </button>
-
-          {/* Bottom Row: 4. Character Library (Left Half) & Settings (Right Half) */}
-          <div className="grid grid-cols-2 gap-2.5 w-full">
-            <button
-              type="button"
-              onClick={onOpenLibrary}
-              className="py-2.5 px-3 bg-teal-300/90 hover:bg-teal-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group"
-              style={{
-                borderRadius: '55% 45% 60% 40% / 45% 55% 45% 55%',
-              }}
-            >
-              <span className="truncate font-comic text-black">Library</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="py-2.5 px-3 bg-fuchsia-300/90 hover:bg-fuchsia-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group relative"
-              style={{
-                borderRadius: '45% 55% 40% 60% / 55% 45% 55% 45%',
-              }}
-            >
-              <span className="truncate font-comic text-black">Settings</span>
-              {selectedCategories.length > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 ring-2 ring-white animate-pulse rounded-full" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Settings Modal Popup */}
       {isSettingsOpen && (
