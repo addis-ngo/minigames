@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { Character, ImpostorPlayerRole } from '../types';
 
 interface CharacterImpostorGameProps {
@@ -34,12 +35,17 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 bg-blue-dot-grid text-slate-900 font-comic flex flex-col items-center justify-center p-4 relative overflow-hidden select-none">
+    <div className="min-h-screen bg-white bg-blue-dot-grid text-slate-900 font-comic flex flex-col items-center justify-center p-4 relative overflow-hidden select-none">
       {/* Main Container Card (Rounded Rectangle) */}
-      <div className="w-full max-w-md sm:max-w-lg bg-[#a5b4fc]/95 backdrop-blur-xl px-6 sm:px-10 py-8 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white rounded-3xl flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50 transition-all duration-300 hover:scale-[1.01]">
+      <div className="w-full max-w-md sm:max-w-lg bg-[#a5b4fc]/95 backdrop-blur-xl px-6 sm:px-10 py-8 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white rounded-3xl flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50 transition-all duration-300">
         {/* PHASE 1: PASS DEVICE */}
         {phase === 'PASS' && (
-          <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
+            className="w-full flex flex-col items-center"
+          >
             <div className="mb-2">
               <span className="font-comic font-black text-xs text-black bg-indigo-200 px-3.5 py-1 border-2 border-white rounded-full uppercase tracking-wider shadow-sm">
                 Player {currentPlayerIndex + 1} of {players.length}
@@ -67,7 +73,7 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
             >
               View Secret Role
             </button>
-          </div>
+          </motion.div>
         )}
 
         {/* PHASE 2: ROLE VIEW */}
