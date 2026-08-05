@@ -3,6 +3,7 @@ import { Check, X, Plus, Trash2 } from 'lucide-react';
 import { Character, ImpostorSettings, GuessWhoSettings } from '../types';
 import { getImpostorSettings, saveImpostorSettings, getGuessWhoSettings, saveGuessWhoSettings } from '../utils/storage';
 import { FloatingBubblesBackground } from './FloatingBubblesBackground';
+import { MENU_TITLES } from '../data/menuTitles';
 
 interface MainScreenProps {
   onPlay: (selectedCategories?: string[]) => void;
@@ -30,6 +31,12 @@ export const MainScreen: React.FC<MainScreenProps> = ({
 
   // Guess Who settings state
   const [guessWhoSettings, setGuessWhoSettings] = useState<GuessWhoSettings>(getGuessWhoSettings);
+
+  // Random title selection on home screen load
+  const [titleIndex] = useState(() => {
+    if (!MENU_TITLES || MENU_TITLES.length === 0) return 0;
+    return Math.floor(Math.random() * MENU_TITLES.length);
+  });
 
   // Load settings when opening settings modal
   useEffect(() => {
@@ -133,7 +140,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({
       >
         {/* Heading */}
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-bangers tracking-wider text-white uppercase -mt-12 sm:-mt-14 mb-4 transform -rotate-2 hover:scale-105 transition-transform duration-300 [-webkit-text-stroke:2.5px_black] whitespace-nowrap z-20 px-2 pointer-events-auto">
-          IchigoBankai.com
+          {MENU_TITLES[titleIndex % (MENU_TITLES.length || 1)] || 'ichigobankai'}
         </h1>
 
         {/* Main Games and Library / Settings Grid */}
