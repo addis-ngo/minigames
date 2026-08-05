@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Character } from '../types';
 import { getLibrary } from '../utils/storage';
@@ -34,14 +34,6 @@ interface SingleBubbleProps {
 
 const SingleBubble: React.FC<SingleBubbleProps> = ({ slotIndex, initialDelay, characters }) => {
   const [cycle, setCycle] = useState(0);
-  const [isPopped, setIsPopped] = useState(false);
-  const isDraggingRef = useRef(false);
-  const animationFinishedRef = useRef(false);
-
-  useEffect(() => {
-    animationFinishedRef.current = false;
-    isDraggingRef.current = false;
-  }, [cycle]);
 
   // Generate fresh random properties every cycle (new character, size, color, trajectory)
   const bubbleState = useMemo(() => {
@@ -70,6 +62,103 @@ const SingleBubble: React.FC<SingleBubbleProps> = ({ slotIndex, initialDelay, ch
     // Speed duration
     const duration = Math.floor(Math.random() * 8) + 12; // 12s to 20s
 
+    return {
+      character: randomChar,
+      size: randomSize,
+      color: randomColor,
+      startLeft,
+      startTop,
+      driftX,
+      deltaY,
+      duration,
+    };
+  }, [characters, cycle]);
+
+  return (
+    <motion.div
+      key={`${slotIndex}-${cycle}`}
+      initial={{
+        x: '0px',
+        y: '0vh',
+      }}
+      animate={{
+        x: ['0px', bubbleState.driftX],
+        y: ['0vh', bubbleState.deltaY],
+      }}
+      transition={{
+        duration: bubbleState.duration,
+        ease: 'linear',
+        delay: cycle === 0 ? initialDelay : 0,
+      }}
+      onAnimationComplete={() => {
+        setCycle((c) => c + 1);
+      }}
+      style={{
+        width: `${bubbleState.size}px`,
+        height: `${bubbleState.size}px`,
+        left: bubbleState.startLeft,
+        top: bubbleState.startTop,
+      }}
+      className="absolute pointer-events-auto select-none z-10"
+    >
+      <motion.div
+        drag
+        dragConstraints={{ left: -600, right: 600, top: -1200, bottom: 1200 }}
+        dragElastic={0.2}
+        whileHover={{ scale: 1.06 }}
+        whileDrag={{ scale: 1.15, zIndex: 50 }}
+        className={`w-full h-full rounded-full ${bubbleState.color} overflow-hidden flex items-center justify-center shadow-lg border-2 border-white/90 p-0.5 cursor-grab active:cursor-grabbing relative transition-shadow hover:shadow-xl`}
+      >
+        {bubbleState.character && (
+          <img
+            src={bubbleState.character.imageUrl}
+            alt={bubbleState.character.name}
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-cover rounded-full pointer-events-none select-none"
+          />
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ characters: propCharacters }) => {
+  const [activeCharacters, setActiveCharacters] = useState<Character[]>([]);
+
+  useEffect(() => {
+    if (propCharacters && propCharacters.length > 0) {
+      const active = propCharacters.filter((c) => !c.excluded);
+      setActiveCharacters(active.length > 0 ? active : propCharacters);
+    } else {
+      const lib = getLibrary();
+      const active = lib.filter((c) => !c.excluded);
+      setActiveCharacters(active.length > 0 ? active : lib);
+    }
+  }, [propCharacters]);
+
+  // 25 staggered spawn slots continuously generating rising bubbles
+  const slots = useMemo(() => {
+    return Array.from({ length: 25 }, (_, idx) => ({
+      slotIndex: idx,
+      initialDelay: idx * 0.65, // 0s, 0.65s, 1.3s, 1.95s, etc.
+    }));
+  }, []);
+
+  return (
+    <div className="absolute inset-0 bg-white overflow-hidden pointer-events-none select-none z-0">
+      {/* Continuously spawning opaque bubbles rising straight up from the bottom */}
+      {activeCharacters.length > 0 &&
+        slots.map((slot) => (
+          <SingleBubble
+            key={slot.slotIndex}
+            slotIndex={slot.slotIndex}
+            initialDelay={slot.initialDelay}
+            characters={activeCharacters}
+          />
+        ))}
+    </div>
+  );
+};
     return {
       character: randomChar,
       size: randomSize,
