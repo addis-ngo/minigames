@@ -1,34 +1,63 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Character, ImpostorPlayerRole } from '../types';
+import { QuestionPair } from '../types';
 
-interface CharacterImpostorGameProps {
-  secretCharacter: Character;
-  players: ImpostorPlayerRole[];
+export interface QuestionImpostorPlayer {
+  playerName: string;
+  isImpostor: boolean;
+  questionReceived: string;
+}
+
+interface QuestionImpostorGameProps {
+  questionPair: QuestionPair;
+  mainQuestion: string;
+  impostorQuestion: string;
+  playerRoles: QuestionImpostorPlayer[];
   impostorNames: string[];
   onHome: () => void;
 }
 
-export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
-  secretCharacter,
-  players,
+export const QuestionImpostorGame: React.FC<QuestionImpostorGameProps> = ({
+  questionPair,
+  mainQuestion,
+  impostorQuestion,
+  playerRoles,
   impostorNames,
   onHome,
 }) => {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [phase, setPhase] = useState<'PASS' | 'ROLE_VIEW' | 'DISCUSSION'>('PASS');
+  const [phase, setPhase] = useState<'PASS' | 'ANSWER' | 'DISCUSSION'>('PASS');
+  const [currentAnswer, setCurrentAnswer] = useState('');
+  const [submittedAnswers, setSubmittedAnswers] = useState<
+    { playerName: string; answer: string; isImpostor: boolean; questionReceived: string }[]
+  >([]);
   const [isRevealed, setIsRevealed] = useState(false);
 
-  const currentPlayer = players[currentPlayerIndex];
+  const currentPlayer = playerRoles[currentPlayerIndex];
 
-  const handleViewRole = () => {
-    setPhase('ROLE_VIEW');
+  const handleStartAnswer = () => {
+    setPhase('ANSWER');
+    setCurrentAnswer('');
   };
 
-  const handleNextPlayer = () => {
-    if (currentPlayerIndex < players.length - 1) {
+  const handleSubmitAnswer = (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalAnswer = currentAnswer.trim() || 'No Answer';
+
+    setSubmittedAnswers((prev) => [
+      ...prev,
+      {
+        playerName: currentPlayer.playerName,
+        answer: finalAnswer,
+        isImpostor: currentPlayer.isImpostor,
+        questionReceived: currentPlayer.questionReceived,
+      },
+    ]);
+
+    if (currentPlayerIndex < playerRoles.length - 1) {
       setCurrentPlayerIndex((prev) => prev + 1);
       setPhase('PASS');
+      setCurrentAnswer('');
     } else {
       setPhase('DISCUSSION');
     }
@@ -48,7 +77,7 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
           >
             <div className="mb-2">
               <span className="font-comic font-black text-xs text-black bg-indigo-200 px-3.5 py-1 border-2 border-white rounded-full uppercase tracking-wider shadow-sm">
-                Player {currentPlayerIndex + 1} of {players.length}
+                Player {currentPlayerIndex + 1} of {playerRoles.length}
               </span>
             </div>
 
@@ -68,73 +97,53 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
 
             <button
               type="button"
-              onClick={handleViewRole}
+              onClick={handleStartAnswer}
               className="w-full py-3.5 px-6 bg-amber-300 hover:bg-amber-200 text-black font-comic font-black text-sm uppercase tracking-wider transition-all border-2 border-white rounded-2xl shadow-md cursor-pointer active:scale-[0.98]"
             >
-              View Secret Role
+              View My Question
             </button>
           </motion.div>
         )}
 
-        {/* PHASE 2: ROLE VIEW */}
-        {phase === 'ROLE_VIEW' && (
-          <div className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
+        {/* PHASE 2: ANSWER QUESTION */}
+        {phase === 'ANSWER' && (
+          <form onSubmit={handleSubmitAnswer} className="w-full flex flex-col items-center animate-in fade-in zoom-in-95 duration-200">
             <div className="mb-2">
               <span className="font-comic font-black text-xs text-black bg-indigo-200 px-3.5 py-1 border-2 border-white rounded-full uppercase tracking-wider shadow-sm">
-                {currentPlayer.playerName}&apos;s Role
+                {currentPlayer.playerName}&apos;s Question
               </span>
             </div>
 
-            {!currentPlayer.isImpostor ? (
-              /* REGULAR PLAYER ROLE */
-              <div className="w-full flex flex-col items-center">
-                <h2 className="text-2xl sm:text-3xl font-bangers tracking-wider text-emerald-800 uppercase mb-3">
-                  Your Secret Character
-                </h2>
-
-                {/* Character Image Box */}
-                <div className="w-40 h-40 sm:w-48 sm:h-48 bg-white border-4 border-white shadow-md rounded-3xl overflow-hidden mb-3 relative group">
-                  <img
-                    src={secretCharacter.imageUrl}
-                    alt={secretCharacter.name}
-                    className="w-full h-full object-cover object-center"
-                  />
-                </div>
-
-                <div className="text-xl sm:text-2xl font-comic font-black text-black tracking-wider uppercase mb-0.5">
-                  {secretCharacter.name}
-                </div>
-                <div className="text-xs font-comic font-bold text-black bg-emerald-100 px-3 py-0.5 rounded-full border border-emerald-200 mb-4">
-                  {secretCharacter.category || secretCharacter.theme || 'Anime'}
-                </div>
-
-                <p className="text-xs font-comic font-bold text-black mb-5 uppercase tracking-wider leading-relaxed">
-                  Memorize this character! Everyone else has this exact character except the Impostor.
-                </p>
+            <div className="w-full bg-white/95 backdrop-blur-md border-2 border-white p-4 mb-4 text-left shadow-sm rounded-2xl">
+              <div className="text-[10px] font-comic font-bold text-black uppercase tracking-wider mb-1">
+                SECRET QUESTION:
               </div>
-            ) : (
-              /* IMPOSTOR ROLE */
-              <div className="w-full flex flex-col items-center py-2">
-                <div className="w-full py-6 px-4 bg-rose-200/90 border-2 border-white mb-4 text-center shadow-sm rounded-2xl">
-                  <div className="text-2xl sm:text-3xl font-bangers tracking-wide text-rose-950 uppercase">
-                    YOU ARE THE IMPOSTOR!
-                  </div>
-                </div>
-
-                <p className="text-xs font-comic font-bold text-black mb-6 uppercase tracking-wider leading-relaxed px-2">
-                  You do NOT know the secret character! Blend in with the group, act natural, and convince everyone you know who it is!
-                </p>
+              <div className="text-base sm:text-lg font-comic font-black text-black leading-snug">
+                {currentPlayer.questionReceived}
               </div>
-            )}
+            </div>
+
+            <div className="w-full text-left mb-5">
+              <label className="block text-xs font-comic font-bold text-black uppercase tracking-wider mb-1.5">
+                Your Answer:
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
+                placeholder="Type your answer here..."
+                className="w-full bg-white border-2 border-indigo-200 focus:border-amber-400 p-3 text-sm font-comic font-bold text-black placeholder-slate-400 focus:outline-none rounded-2xl resize-none shadow-inner"
+              />
+            </div>
 
             <button
-              type="button"
-              onClick={handleNextPlayer}
-              className="w-full py-3.5 px-6 bg-sky-300 hover:bg-sky-200 text-black font-comic font-black text-xs uppercase tracking-wider transition-all border-2 border-white rounded-2xl shadow-md cursor-pointer active:scale-[0.98]"
+              type="submit"
+              className="w-full py-3.5 px-6 bg-amber-300 hover:bg-amber-200 text-black font-comic font-black text-xs uppercase tracking-wider transition-all border-2 border-white rounded-2xl shadow-md cursor-pointer active:scale-[0.98]"
             >
-              Pass Device
+              Submit & Pass Device
             </button>
-          </div>
+          </form>
         )}
 
         {/* PHASE 3: DISCUSSION & REVEAL */}
@@ -144,9 +153,51 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
               Discussion Time
             </h2>
 
-            <p className="text-xs font-comic font-bold text-black uppercase tracking-wider mb-5 leading-relaxed">
-              Everyone has seen their role. Discuss with the group and vote on who the Impostor is!
+            <p className="text-xs font-comic font-bold text-black uppercase tracking-wider mb-3 leading-relaxed">
+              Here are everyone&apos;s answers. Discuss and guess who had the secret alternate question!
             </p>
+
+            {/* Real Question Display */}
+            <div className="w-full bg-white/95 backdrop-blur-md border-2 border-white p-3.5 mb-4 text-left shadow-sm rounded-2xl">
+              <div className="text-[10px] font-comic font-bold text-black uppercase tracking-wider mb-0.5">
+                REAL QUESTION:
+              </div>
+              <div className="text-sm sm:text-base font-comic font-black text-black leading-snug">
+                {mainQuestion}
+              </div>
+            </div>
+
+            {/* Answers List */}
+            <div className="w-full space-y-2 mb-5 max-h-60 overflow-y-auto pr-1">
+              {submittedAnswers.map((item, idx) => {
+                const isThisImpostor = isRevealed && item.isImpostor;
+
+                return (
+                  <div
+                    key={idx}
+                    className={`w-full p-3 border-2 border-white text-left transition-all rounded-2xl shadow-sm ${
+                      isThisImpostor
+                        ? 'bg-rose-200/95 text-black'
+                        : 'bg-white/95 text-black'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-comic font-black text-xs uppercase tracking-wider text-black">
+                        {item.playerName}
+                      </span>
+                      {isThisImpostor && (
+                        <span className="text-[10px] font-comic font-bold text-black uppercase bg-rose-300 px-2.5 py-0.5 rounded-full border border-white">
+                          IMPOSTOR
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm font-comic font-bold text-black bg-indigo-50/80 p-2.5 rounded-xl border border-indigo-100">
+                      &ldquo;{item.answer}&rdquo;
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
             {/* REVEAL RESULT SECTION */}
             {!isRevealed ? (
@@ -159,7 +210,7 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
               </button>
             ) : (
               <div className="w-full flex flex-col items-center animate-in zoom-in-95 duration-200">
-                {/* Impostor Reveal */}
+                {/* Impostor Reveal Banner */}
                 <div className="w-full p-4 bg-rose-200 border-2 border-white mb-4 text-center shadow-sm rounded-2xl">
                   <div className="text-xs font-comic font-bold text-black uppercase tracking-wider mb-0.5">
                     THE {impostorNames.length > 1 ? 'IMPOSTORS WERE' : 'IMPOSTOR WAS'}
@@ -169,24 +220,27 @@ export const CharacterImpostorGame: React.FC<CharacterImpostorGameProps> = ({
                   </div>
                 </div>
 
-                {/* Secret Character Reveal */}
-                <div className="w-full p-4 bg-white/90 border-2 border-white mb-5 flex flex-col items-center rounded-2xl shadow-sm">
-                  <div className="text-[10px] font-comic font-bold text-black uppercase tracking-wider mb-2">
-                    SECRET CHARACTER WAS
+                {/* Questions Comparison Box */}
+                <div className="w-full p-3.5 bg-white/95 border-2 border-white mb-5 rounded-2xl text-left space-y-2 shadow-sm">
+                  <div>
+                    <span className="text-[10px] font-comic font-bold text-black uppercase tracking-wider block">
+                      Main Question (Everyone Else):
+                    </span>
+                    <span className="text-xs font-comic font-bold text-black">
+                      {mainQuestion}
+                    </span>
                   </div>
-                  <div className="w-24 h-24 bg-amber-100 border-2 border-slate-200 rounded-2xl overflow-hidden mb-2">
-                    <img
-                      src={secretCharacter.imageUrl}
-                      alt={secretCharacter.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="text-base font-comic font-black text-black uppercase tracking-wider">
-                    {secretCharacter.name}
+                  <div className="pt-2 border-t border-slate-200">
+                    <span className="text-[10px] font-comic font-bold text-black uppercase tracking-wider block">
+                      Impostor Question:
+                    </span>
+                    <span className="text-xs font-comic font-bold text-black">
+                      {impostorQuestion}
+                    </span>
                   </div>
                 </div>
 
-                {/* Home / Main Menu */}
+                {/* Main Menu Button */}
                 <button
                   type="button"
                   onClick={onHome}
