@@ -22,6 +22,19 @@
   animation: gridGlowSweep 12s linear infinite;
 }
 
+/* Tiny Blue Dots Grid Background */
+.bg-blue-dot-grid {
+  background-color: #ffffff;
+  background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+body {
+  background-color: #ffffff;
+  background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
 button, .btn {
   font-family: 'Comic Neue', 'Comic Sans MS', 'Comic Sans', cursive, sans-serif !important;
 }
