@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { Character } from '../types';
 
 interface BlindRankGameProps {
@@ -41,7 +42,7 @@ export const BlindRankGame: React.FC<BlindRankGameProps> = ({
   ];
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] w-full bg-slate-100 bg-blue-dot-grid text-slate-900 font-comic flex flex-col items-center justify-center p-2 sm:p-4 relative overflow-hidden select-none">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-white bg-blue-dot-grid text-slate-900 font-comic flex flex-col items-center justify-center p-2 sm:p-4 relative overflow-hidden select-none">
       {/* Main Console Card Box (Rounded Rectangle) */}
       <div className="w-full max-w-md sm:max-w-2xl max-h-[calc(100dvh-2rem)] bg-[#a5b4fc]/95 backdrop-blur-xl px-4 sm:px-8 pt-2 pb-4 sm:pb-6 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white rounded-3xl flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50 transition-all duration-300">
         {/* GAME TITLE HEADER - Hanging off top edge */}
@@ -65,7 +66,12 @@ export const BlindRankGame: React.FC<BlindRankGameProps> = ({
 
         {/* ACTIVE RANKING SCREEN */}
         {!isCompleted && currentCharacter && (
-          <div className="w-full flex-1 min-h-0 flex flex-col items-center justify-between animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
+            className="w-full flex-1 min-h-0 flex flex-col items-center justify-between overflow-hidden"
+          >
             <div className="text-xs font-comic font-bold tracking-wider text-black uppercase mb-1 shrink-0">
               Where do you rank this character?
             </div>
@@ -140,7 +146,7 @@ export const BlindRankGame: React.FC<BlindRankGameProps> = ({
                 })}
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* RESULTS SCREEN */}
