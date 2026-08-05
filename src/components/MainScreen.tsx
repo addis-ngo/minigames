@@ -132,7 +132,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({
     setIsTransitioning(true);
     setTimeout(() => {
       action();
-    }, 520);
+    }, 600);
   };
 
   return (
@@ -142,15 +142,19 @@ export const MainScreen: React.FC<MainScreenProps> = ({
 
       {/* Main console card box over floating bubbles background */}
       <motion.div
-        initial={{ borderRadius: '6% 6% 6% 6% / 6% 6% 6% 6%' }}
+        initial={{
+          borderRadius: '6% 6% 6% 6% / 6% 6% 6% 6%',
+          scale: 1.04,
+        }}
         animate={{
           borderRadius: isTransitioning
             ? '6% 6% 6% 6% / 6% 6% 6% 6%'
             : '55% 45% 62% 38% / 38% 62% 38% 62%',
+          scale: isTransitioning ? 1.06 : 1,
         }}
         transition={{
-          duration: 0.6,
-          ease: [0.25, 1, 0.5, 1],
+          duration: 0.65,
+          ease: [0.22, 1, 0.36, 1],
         }}
         className="w-full max-w-md sm:max-w-lg bg-[#a5b4fc]/95 backdrop-blur-xl px-10 sm:px-14 py-9 shadow-[0_25px_60px_rgba(165,180,252,0.45)] border-4 border-white flex flex-col items-center text-center relative z-10 ring-4 ring-indigo-300/50"
       >
@@ -158,8 +162,8 @@ export const MainScreen: React.FC<MainScreenProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: isTransitioning ? 0 : 1 }}
           transition={{
-            duration: isTransitioning ? 0.25 : 0.4,
-            delay: isTransitioning ? 0 : 0.1,
+            duration: isTransitioning ? 0.25 : 0.45,
+            delay: isTransitioning ? 0 : 0.15,
           }}
           className="w-full flex flex-col items-center"
         >
@@ -235,7 +239,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({
             <div className="grid grid-cols-2 gap-2.5 w-full">
               <button
                 type="button"
-                onClick={onOpenLibrary}
+                onClick={() => handleGameStartWithAnimation(onOpenLibrary)}
                 className="py-2.5 px-3 bg-teal-300/90 hover:bg-teal-300 text-black font-comic font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center transition-all border-2 border-white shadow-md active:scale-[0.98] cursor-pointer group"
                 style={{
                   borderRadius: '55% 45% 60% 40% / 45% 55% 45% 55%',
