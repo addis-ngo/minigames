@@ -127,7 +127,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 select-none relative overflow-hidden">
+    <div className="min-h-screen bg-white bg-blue-dot-grid flex flex-col items-center justify-center p-6 select-none relative overflow-hidden">
       {/* Floating Colored Bubbles Background on White Canvas */}
       <FloatingBubblesBackground characters={characters} />
 
