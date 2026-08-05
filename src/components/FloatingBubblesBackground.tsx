@@ -5,6 +5,7 @@ import { getLibrary } from '../utils/storage';
 
 interface FloatingBubblesBackgroundProps {
   characters?: Character[];
+  isFadingOut?: boolean;
 }
 
 const COLOR_PALETTE = [
@@ -122,7 +123,10 @@ const SingleBubble: React.FC<SingleBubbleProps> = ({ slotIndex, initialDelay, ch
   );
 };
 
-export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({ characters: propCharacters }) => {
+export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps> = ({
+  characters: propCharacters,
+  isFadingOut = false,
+}) => {
   const [activeCharacters, setActiveCharacters] = useState<Character[]>([]);
 
   useEffect(() => {
@@ -145,7 +149,12 @@ export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps>
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-white bg-blue-dot-grid overflow-hidden pointer-events-none select-none z-0">
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: isFadingOut ? 0 : 1 }}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
+      className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0"
+    >
       {/* Continuously spawning opaque bubbles rising straight up from the bottom */}
       {activeCharacters.length > 0 &&
         slots.map((slot) => (
@@ -156,6 +165,6 @@ export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps>
             characters={activeCharacters}
           />
         ))}
-    </div>
+    </motion.div>
   );
 };
