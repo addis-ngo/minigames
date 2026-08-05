@@ -145,7 +145,7 @@ export const FloatingBubblesBackground: React.FC<FloatingBubblesBackgroundProps>
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-white overflow-hidden pointer-events-none select-none z-0">
+    <div className="absolute inset-0 bg-white bg-blue-dot-grid overflow-hidden pointer-events-none select-none z-0">
       {/* Continuously spawning opaque bubbles rising straight up from the bottom */}
       {activeCharacters.length > 0 &&
         slots.map((slot) => (
